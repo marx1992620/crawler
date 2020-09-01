@@ -1,0 +1,23 @@
+linux,Linux,LINUX
+html,HTML,網頁語法
+python,Python,PYTHON
+Hadoop,hadoop,HADOOP
+MySQL,mysql,SQL,sql
+MongoDB,mongodb,Mongodb
+Kafka,kafka,KAFKA
+R語言,R程式,R
+ETL,ELT,爬蟲,crawl
+Docker,docker
+Data mining,Data Minig,DataMining,資料分析,數據分析,大數據,大數據分析,資料探勘,資料工程,資料科學
+spark,SPARK,Spark
+Machine learning,機器學習,Deep learning,深度學習,人臉辨識,臉孔辨識,影像辨識,圖形辨識,圖片辨識,Tensorflow,TensorFlow
+AI,ai,Artificial intelligence,人工智能,人工智慧
+Cloud,cloud service,cloud server,cloud,雲端服務,雲端運算,雲服務,aws,gcp,azure
+
+
+
+
+
+
+
+
