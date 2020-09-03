@@ -14,7 +14,8 @@ import threading
 from queue import Queue
 import random
 
-titles = Queue() # 用Queue讓執行緒依序取物件進行任務
+times = Queue() # 用Queue讓執行緒依序取物件進行任務
+titles = Queue()
 df = pd.DataFrame(columns=['link','id','brand','type','seller','price','year','miles','locate','cc','sys',
                                'power','color','gas','people','window','hid','led','l_chair','auto_chair',
                                'keyless','media','air_con','gps','multi_wheel','epb','slide_door',
@@ -61,12 +62,11 @@ def grab_url():
     with open(r'./abcCar_url.txt', 'w', encoding='utf-8') as f:
         f.write(js)
 # 由已抓下的車網址，抓車物件內容
-def crawl_content(url):
+def crawl_content(url,n):
     options = selenium.webdriver.ChromeOptions()
     options.add_argument('--headless')
     driver = selenium.webdriver.Chrome(chrome_options=options, executable_path='./chromedriver')
 
-    n=0
     try:
         driver.get(url)
         time.sleep(random.randint(3,10))
@@ -115,12 +115,13 @@ def crawl_content(url):
                 c[t] = 0
             t += 1
         print(price, brand, model, year, seller)
+        # 從times Queue取序號，依序新增row資料
         df.loc[n] = [url, id, brand, model, seller, price, year, km, location, discharge, sys,
                      power, color, fue, people, c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9],
                      c[10], c[11], c[12], c[13], c[14], c[15], c[16], c[17], c[18], c[19], c[20], c[21],c[22],
                      c[23],c[24],c[25],c[26],c[27],c[28],c[29],c[30],c[31],c[32],c[33],c[34],c[35],c[36],c[37],
                      c[38],c[39],c[40],c[41],c[42]]
-        n += 1 # dataframe依序新增row
+
         df.to_csv(r'./test.csv', index=0, encoding='utf-8-sig')
     except Exception as e:
         print("已下架", e, url) # 物件下架便抓不到資料
@@ -139,6 +140,7 @@ def crawl_content_thread():
     for j in range(len(list)):
         current_url = list[j]
         titles.put(current_url)
+        times.put(j) # 依順序times Queue放入編號
     threads = []
     for t in range(5): # 建5個執行緒
         t = thread_class("t"+str(t))
@@ -153,8 +155,9 @@ class thread_class(threading.Thread): # 此為python繼承語法
         self.name = name # 每條thread的名子
     def run(self): # thread啟動後執行函數
         while titles.empty() is False:  #檢查titles queue不為空的話，獲取URL後parse
-            url = titles.get() # 從Queue中取url給
-            crawl_content(url)
+            url = titles.get() # 從Queue中取url給每條thread
+            n = times.get() # 從Queue中取編號給給每條thread
+            crawl_content(url,n)
 
 if __name__ == '__main__':
     tStart = time.time() # 起始時間
