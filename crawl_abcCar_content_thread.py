@@ -6,6 +6,7 @@ from selenium.webdriver.common.by import By
 import selenium.webdriver
 from selenium.webdriver import Chrome
 import time
+import datetime
 import requests
 import os
 import pandas as pd
@@ -13,6 +14,16 @@ import json
 import threading
 from queue import Queue
 import random
+import logging
+
+logging.basicConfig(level=logging.INFO,
+    format='%(asctime)s - %(levelname)s : %(message)s',
+    datefmt='%Y%m%dT%H%M%S',filename='mylog.txt')
+logging.debug('debug')
+logging.info('info')
+logging.warning('warning')
+logging.error('error')
+logging.critical('critical')
 
 times = Queue() # 用Queue讓執行緒依序取物件進行任務
 titles = Queue()
@@ -24,7 +35,7 @@ df = pd.DataFrame(columns=['link','id','brand','type','seller','price','year','m
                                 'isofix','auto_park','silde_door','female_used','turbo','warranty','fog_lights',
                                 'electric_tailgate','whole_window','lcd','shift_paddles'])
 # 抓所有車網址
-def grab_url():
+def crawl_page():
     # 讓driver等頁面內容5秒，超過5秒則跳過
     # element = WebDriverWait(driver,5).until(expected_conditions.presence_of_element_located((By.CLASS_NAME,'abc-container')))
     options = selenium.webdriver.ChromeOptions()
@@ -34,7 +45,7 @@ def grab_url():
     driver.get(url)
     url_dict = {}
 
-    for page in range(1,10):
+    for page in range(1,11): # 設定爬取10頁
         try:
             # 若網頁資料5秒後還未出現，便跳過此頁
             element = WebDriverWait(driver,5).until(expected_conditions.presence_of_element_located((By.XPATH,'/html/body/main/form/section[3]/section/div[2]/div[3]/div[3]/div[3]/button')))
@@ -50,7 +61,7 @@ def grab_url():
                     pass
                 else:
                     url_dict[id]=[url]
-
+            # 點擊下一頁，降低被網站重複推薦同物件
             driver.find_element_by_xpath('/html/body/main/form/section[3]/section/div[2]/div[3]/div[3]/div[3]/button').click()
         except Exception as e:
             print(e,page)
@@ -140,7 +151,7 @@ def crawl_content_thread():
     for j in range(len(list)):
         current_url = list[j]
         titles.put(current_url)
-        times.put(j) # 依順序times Queue放入編號
+        times.put(j) # times Queue依序放入編號
     threads = []
     for t in range(5): # 建5個執行緒
         t = thread_class("t"+str(t))
@@ -161,8 +172,13 @@ class thread_class(threading.Thread): # 此為python繼承語法
 
 if __name__ == '__main__':
     tStart = time.time() # 起始時間
+    logging.debug('debug')
+    logging.info('info')
+    logging.warning('warning')
+    logging.error('error')
+    logging.critical('critical')
     print("start crawling url and content")
-    # grab_url()
+    crawl_page()
     crawl_content_thread()
     tEnd = time.time() # 結束時間
     print('Cost %d seconds' % (tEnd - tStart)) # 完成花費時間
