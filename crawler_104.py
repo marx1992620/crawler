@@ -12,26 +12,48 @@ from queue import Queue
 # import xlsxwriter
 # import re
 
-if not os.path.exists('./output'):
-    os.mkdir('./output')
-
+config = {}
+df = ""
 url_Queue = Queue()
 pages_Queue = Queue()
 headers_Queue = Queue()
 times_Queue = Queue()
 
-for tt in range(1000):
-    times_Queue.put(tt) # 建立編號Queue
 
-skills = ['Linux', 'Python', 'Hadoop', 'MySQL','MongoDB', 'Kafka', 'R', 'ETL', 'Docker', 'Tableau', 'PowerBI', 'Spark','Machine Learning', 'AI', 'cloud']
-df = pd.DataFrame(columns=['company', 'job_name', 'job_content', 'job_exp', 'job_require', 'job_welfare',
-                           'job_contact', 'URL'] + skills)
+def setting():
+    global df,config
+    if not os.path.exists('./output'):
+        os.mkdir('./output')
+
+    # 讀取104_config
+    if not os.path.exists(r'./104_config.json'):
+        return
+    try:
+        with open(r'./104_config.json', 'r', encoding='utf-8') as f:
+            config = json.loads(f.read())
+        print("------------------config------------------")
+        print(config)
+    except Exception as e:
+        print(f"read config occurs exception as: {str(e)}")
+
+    for tt in range(int(config["max_rows"])):
+        times_Queue.put(tt) # 建立編號Queue
+
+    for key in config["job_skills"]:
+        if key not in config["synonym_dic"]:
+            config["synonym_dic"][key]=[key.lower()]
+    for skill_column in config["synonym_dic"]:
+        if skill_column not in config["job_skills"]:
+            config["job_skills"].append(skill_column)
+
+    df = pd.DataFrame(columns=['company', 'job_name', 'job_content', 'job_exp', 'job_require', 'job_welfare',
+                            'job_contact', 'URL'] + config["job_skills"])
+
 def crawl_url():
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
-    # print("請輸入關鍵字: ")
-    # keyword = input() # 輸入技能搜尋相關職缺
-    keyword = 'python'
-    for n in range(1, 10): # 設定爬頁數
+    keyword = config["job_keyword"] # 搜尋相關職缺
+
+    for n in range(1, int(config["max_pages"])): # 設定爬頁數
         url = f'https://www.104.com.tw/jobs/search/?ro=0&keyword={keyword}&order=1&asc=0&page={n}&mode=s&jobsource=2018indexpoc'
         res = requests.get(url, headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -50,18 +72,13 @@ def crawl_content(url,headers):
     job_content = json_data['data']['jobDetail']['jobDescription']
     job_exp = "工作經驗:" + json_data['data']['condition']['workExp']
     job_skills = [i['description'] for i in json_data['data']['condition']['specialty']]
-    # 讀取同義字檔案 並建同義字字典
-    synonym_dict = {}
-    with open(r'./mydict.txt', 'r', encoding='utf-8') as syn:
-        syn_str = syn.read().split("\n")
-    for each_row in syn_str:
-        synonym_dict[each_row.split(',')[0]] = [item for item in each_row.split(',')]
+
     # 搜索所需技能
-    c = [0 for _ in range(len(skills))]
+    c = [0 for _ in range(len(config["job_skills"]))]
     # times為配對技能要求次數
     for job_skill in job_skills:
         times = 0
-        for b in synonym_dict.values(): # 從同義字字典匹配技能項
+        for b in config["synonym_dic"].values(): # 從同義字字典匹配技能項
             if job_skill.lower() in b:
                 c[times] = 1
             times += 1
@@ -102,6 +119,7 @@ class thread_class(threading.Thread): # 此為python繼承語法
 
 if __name__ == '__main__':
     tStart = time.time() # 起始時間
+    setting()
     print("start crawling url")
     crawl_url()
     print("start crawling content")
