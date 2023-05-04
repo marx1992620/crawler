@@ -1,2 +1,2 @@
 # crawler
- use python crawl information on the web
+ To use python to crawl information from the website
