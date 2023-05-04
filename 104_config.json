@@ -10,14 +10,12 @@
                     "AI":["ai","artificial intelligence","人工智能","人工智慧"],
                     "Cloud":["cloud","aws","gcp","azure","cloud service","cloud server","雲端服務","雲端運算","雲服務"]
                     },
-                    
+
     "job_skills":[
                 "Linux", "Python", "Hadoop", "MySQL", "MongoDB", "Kafka", "R", "ETL", "Docker", "Tableau", "PowerBI", "Data Mining", "Machine Learning", "AI", "Spark", "Cloud"
                 ],
 
     "job_keyword":"python",
 
-    "max_pages": 10,
-
-    "max_rows": 1000
+    "max_pages": 10
 }

@@ -36,6 +36,7 @@ def setting():
     except Exception as e:
         print(f"read config occurs exception as: {str(e)}")
 
+    config["max_rows"] = int(config["max_pages"]) * 60
     for tt in range(int(config["max_rows"])):
         times_Queue.put(tt) # 建立編號Queue
 
